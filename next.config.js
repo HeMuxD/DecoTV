@@ -3,6 +3,10 @@
 const nextConfig = {
   // 根据环境自动选择输出模式：Vercel自动处理，Docker使用standalone
   // 本地开发时不使用 standalone 避免 Windows 符号链接权限问题
+  output: 'export', // 核心配置：启用静态导出
+  images: { 
+    unoptimized: true // 静态导出时必须禁用默认图片优化
+  }
   ...(process.env.VERCEL || process.env.DOCKER_BUILD
     ? { output: 'standalone' }
     : {}),
