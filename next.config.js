@@ -1,13 +1,12 @@
 /** @type {import('next').NextConfig} */
-
 const nextConfig = {
-  // 根据环境自动选择输出模式：Vercel自动处理，Docker使用standalone
-  // 本地开发时不使用 standalone 避免 Windows 符号链接权限问题
-  output: 'export', // 核心配置：启用静态导出
-  images: { 
-    unoptimized: true // 静态导出时必须禁用默认图片优化
-  }
-  ...(process.env.VERCEL || process.env.DOCKER_BUILD
+  // 根据环境自动选择输出模式：
+  // - Cloudflare Pages (CF_PAGES 或 STATIC_EXPORT) → 静态导出
+  // - Vercel 或 Docker → standalone
+  // - 其他 → 默认（不设置 output）
+  ...(process.env.CF_PAGES || process.env.STATIC_EXPORT
+    ? { output: 'export' }
+    : process.env.VERCEL || process.env.DOCKER_BUILD
     ? { output: 'standalone' }
     : {}),
 
@@ -26,7 +25,6 @@ const nextConfig = {
 
   // 性能优化：包体积优化和模块化导入
   experimental: {
-    // 自动优化大型库的导入，只打包实际使用的部分
     optimizePackageImports: [
       'lucide-react',
       '@heroicons/react',
@@ -37,8 +35,8 @@ const nextConfig = {
 
   // 图片优化配置
   images: {
-    // NOTE: 移除 unoptimized: true 以启用 Next.js 图片优化
-    // 如果部署到不支持图片优化的平台，可重新启用
+    // 静态导出时必须禁用 Next.js 图片优化，否则构建会报错
+    unoptimized: process.env.CF_PAGES || process.env.STATIC_EXPORT ? true : false,
     remotePatterns: [
       {
         protocol: 'https',
